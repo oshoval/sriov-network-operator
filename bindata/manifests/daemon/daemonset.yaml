@@ -50,6 +50,8 @@ spec:
         volumeMounts:
         - name: host
           mountPath: /host
+        - name: configs
+          mountPath: /sys/devices/pci0000:64/0000:64:00.0/0000:65:00.0
         # - name: hostetc
         #   mountPath: /host/etc
         # - name: hostdev
@@ -74,6 +76,8 @@ spec:
       - name: host
         hostPath:
           path: /
+      - name: configs
+        emptyDir: {}
       # - name: hostetc
       #   hostPath:
       #     path: /etc

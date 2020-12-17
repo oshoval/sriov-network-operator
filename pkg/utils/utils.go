@@ -56,6 +56,13 @@ func DiscoverSriovDevices() ([]sriovnetworkv1.InterfaceExt, error) {
 		return nil, fmt.Errorf("DiscoverSriovDevices(): could not retrieve PCI devices")
 	}
 
+	// WORKED
+	// out, err := exec.Command("/bin/sh", "-c", "grep PCI_SLOT_NAME /sys/class/net/*/device/uevent").Output()
+	// if err != nil {
+	// 	out = []byte{}
+	// 	fmt.Printf("DiscoverSriovDevices() failed to exec grep PCI_SLOT_NAME %v\n", err)
+	// }
+
 	for _, device := range devices {
 		devClass, err := strconv.ParseInt(device.Class.ID, 16, 64)
 		if err != nil {
@@ -111,7 +118,20 @@ func DiscoverSriovDevices() ([]sriovnetworkv1.InterfaceExt, error) {
 					iface.VFs = append(iface.VFs, instance)
 				}
 			}
+		} else {
+			fmt.Printf("DiscoverSriovDevices() skip non SRIOV PF device %s\n", device.Address)
+			continue
+			// // it will help only if the /sys/devices/pci0000:64/0000:64:00.0/0000:65:00.0 will be nil
+			// // but maybe still right to have?
 		}
+
+		// WORKED
+		// if !strings.Contains(string(out), device.Address) {
+		// 	fmt.Printf("DiscoverSriovDevices() skip device %s\n", device.Address)
+		// 	continue
+		// }
+
+		fmt.Printf("DiscoverSriovDevices() add device %s\n", device.Address)
 		pfList = append(pfList, iface)
 	}
 
@@ -403,6 +423,12 @@ func getNetDevLinkSpeed(ifaceName string) string {
 
 func resetSriovDevice(ifaceStatus sriovnetworkv1.InterfaceExt) error {
 	glog.V(2).Infof("resetSriovDevice(): reset SRIOV device %s", ifaceStatus.PciAddress)
+
+	// if ifaceStatus.PciAddress == "0000:65:00.0" {
+	// 	glog.V(2).Infof("Oppan Gangnam Style")
+	// 	return nil
+	// }
+
 	if err := setSriovNumVfs(ifaceStatus.PciAddress, 0); err != nil {
 		return err
 	}
